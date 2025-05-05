@@ -100,6 +100,7 @@ void trie::print_trie_recur(trie_node* node) {
 
 void trie::print_suggestions(string word) {
     trie_node* node = find_current_node(root, word);
+    cout << "current node value = " << node->data << endl;
     if(node != nullptr) {
         find_words(node, word);
     }
@@ -127,24 +128,24 @@ trie_node* trie::find_current_node(trie_node* node, string word) {
 }
 
 void trie::find_words(trie_node* node, string word) {
+    if(node->is_word_end == true) {
+        cout << word << endl;
+    }
     if(node->child_count > 0) {
         for(int i = 0; i < node->child_count; i++) {
             find_words_recur(node->children[i], word);
         }
     }
-    else {
-        cout << word << endl;
-    }
 }
 
 void trie::find_words_recur(trie_node* node, string word) {
     word += node->data;
+    if(node->is_word_end == true) {
+        cout << word << endl;
+    }
     if(node->child_count > 0) {
         for(int i = 0; i < node->child_count; i++) {
-            find_words(node->children[i], word);
+            find_words_recur(node->children[i], word);
         }
-    }
-    else {
-        cout << word << endl;
     }
 }
