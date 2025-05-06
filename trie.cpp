@@ -37,20 +37,32 @@ void trie::insert_word(string word) {
 
 trie_node* trie::check_for_matching_nodes(trie_node* node, string word, string &remaining_letters, bool &word_in_trie) {
     if(node->child_count > 0) {
+
+        //creates string variable of the first letter from remaining letters
         string letter(1, remaining_letters[0]);
+
+        //loops through children in node and compares their data values to the letter variable
         for(int i = 0; i < node->child_count; i++) {
             if(node->children[i]->data == letter) {
+
+                //dermines if the node of the last letter of the passed in word is already a word end
                 if(remaining_letters.length() == 1) {
                     if(node->children[i]->is_word_end == true) {
                         cout << word <<" already exists in trie" << endl;
                     }
+                    //sets is_word_end on last node of word to true
                     else {
                         node->children[i]->is_word_end = true;
                         cout << word << " added" << endl;
                     }
+                    //setting word_in_trie to true avoids running the add_nodes method because
+                    //the word has already been added to the trie
                     word_in_trie = true;
                     return node->children[i];
                 }
+
+                //if there is more than one letter in remaining_letters, the first letter is removed and it is
+                //passed in to this method to run again recursively
                 remaining_letters = remaining_letters.substr(1);
                 return check_for_matching_nodes(node->children[i], word, remaining_letters, word_in_trie);
             }
@@ -100,7 +112,6 @@ void trie::print_trie_recur(trie_node* node) {
 
 void trie::print_suggestions(string word) {
     trie_node* node = find_current_node(root, word);
-    cout << "current node value = " << node->data << endl;
     if(node != nullptr) {
         find_words(node, word);
     }
@@ -147,5 +158,53 @@ void trie::find_words_recur(trie_node* node, string word) {
         for(int i = 0; i < node->child_count; i++) {
             find_words_recur(node->children[i], word);
         }
+    }
+}
+
+void trie::remove_word(string word) {
+    bool word_removed = false;
+    remove_word_recur(root, word, word_removed);
+}
+
+void trie::remove_word_recur(trie_node* node, string word, bool &word_removed) {
+    if(word_removed == true) {
+        return;
+    }
+    string letter(1, word[0]);
+    if(node->child_count > 0) {
+        if(word.length()==1) {
+            node->is_word_end = false;
+            word_removed = true;
+            return;
+        }
+    }
+    if(node->child_count > 0) {
+        for(int i = 0; i < node->child_count; i++) {
+            if(node->children[i]->data == letter) {
+                string remaining_letters = word.substr(1);
+                remove_word_recur(node->children[i], remaining_letters, word_removed);
+                if(node->children[i]->child_count == 0) {
+                    delete node->children[i];
+                    node->children[i] = nullptr;
+                    node->child_count -= 1;
+                    if(node->child_count > 0) {
+                        children_shift_left(node, i);
+                    }
+                    break;
+                } else {
+                    node->children[i]->is_word_end = false;
+                }
+            } else {
+                cout << word << "does not exist in trie" << endl;
+            }
+        }
+    }
+}
+
+void trie::children_shift_left(trie_node* &node, int pos) {
+    for(int i = pos; i < node->child_count; i++) {
+        trie_node* temp = node->children[i + 1];
+        node->children[i + 1] = node->children[i];
+        node->children[i] = temp;
     }
 }
